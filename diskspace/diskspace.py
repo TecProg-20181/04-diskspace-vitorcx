@@ -8,6 +8,7 @@ import os
 import subprocess
 import re
 
+from contracts import contract
 
 # ==== Arguments ====
 
@@ -36,10 +37,11 @@ args = parser.parse_args()
 
 # ==== Disk Space ====
 
+@contract(command='str', returns='str')
 def subprocess_check_output(command):
     return subprocess.check_output(command.strip().split(' '))
 
-
+@contract(blocks='int,>0', returns='str')
 def bytes_to_readable(blocks):
     byts = blocks * 512
     readable_bytes = byts
@@ -51,7 +53,9 @@ def bytes_to_readable(blocks):
     labels = ['B', 'Kb', 'Mb', 'Gb', 'Tb']
     return '{:.2f}{}'.format(round(byts/(1024.0**count), 2), labels[count])
 
-
+@contract(file_tree='dict(str:dict(str:str|list|int,>=0))',
+          file_tree_node='dict(str:str|list|int,>=0)', path='str',
+          largest_size='int,>=0', total_size='int,>=0', depth='int', returns='None')
 def print_tree(file_tree, file_tree_node, path, largest_size, total_size,
                depth=0):
     percentage = int(file_tree_node['size'] / float(total_size) * 100)
@@ -71,7 +75,7 @@ def print_tree(file_tree, file_tree_node, path, largest_size, total_size,
             print_tree(file_tree, file_tree[child], child, largest_size,
                        total_size, depth + 1)
 
-
+@contract(directory='str', depth='int', order=bool, returns='None')
 def show_space_list(directory='.', depth=-1, order=True):
     abs_directory = os.path.abspath(directory)
 
